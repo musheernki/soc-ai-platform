@@ -1,0 +1,36 @@
+{% extends "base_app.html" %}
+{% block crumb %}AI engine{% endblock %}
+{% block heading %}Threat detection{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="glass p-4">
+      <h5>Safe simulation</h5>
+      <p class="muted">Inserts synthetic login events into this local database. It does not scan hosts or attack remote systems.</p>
+      <select class="form-select mb-3" id="mode"><option value="anomalous">Anomalous burst (failed + new IP)</option><option value="normal">Normal successful login</option></select>
+      <button class="btn btn-cyan" id="run">Run simulation</button>
+      <pre class="mt-3 small" id="out"></pre>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="glass p-4">
+      <h5>Scoring model</h5>
+      <p class="muted">Isolation Forest on 11 numeric features plus documented rules. Scores are not claimed as real-world attacker accuracy. Dataset is synthetic.</p>
+      <ul class="muted">
+        <li>LOW 0–24 · MEDIUM 25–49 · HIGH 50–74 · CRITICAL 75–100</li>
+        <li>A new IP alone never becomes HIGH</li>
+        <li>Failed-login bursts add a rule boost on top of the model</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('run').onclick = async () => {
+  const res = await SOC.api('/api/security/simulate', { method: 'POST', body: JSON.stringify({ mode: document.getElementById('mode').value }) });
+  const data = await res.json();
+  document.getElementById('out').textContent = JSON.stringify(data, null, 2);
+};
+</script>
+{% endblock %}

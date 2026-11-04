@@ -1,0 +1,30 @@
+{% extends "base_app.html" %}
+{% block crumb %}Incidents{% endblock %}
+{% block heading %}Security alerts{% endblock %}
+{% block content %}
+<div class="glass p-3">
+  <div class="table-responsive"><table class="table" id="grid"></table></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function load() {
+  const res = await SOC.api('/api/security/alerts');
+  const data = await res.json();
+  const user = SOC.user();
+  document.getElementById('grid').innerHTML = '<thead><tr><th>When</th><th>User</th><th>Score</th><th>Severity</th><th>Status</th><th>Reason</th><th></th></tr></thead><tbody>' +
+    (data.items || []).map(a => `<tr>
+      <td>${a.created_at}</td><td>${a.email || ''}</td><td>${a.risk_score}</td>
+      <td><span class="badge badge-${a.severity}">${a.severity}</span></td>
+      <td>${a.alert_status}</td><td class="small">${a.detection_reason}</td>
+      <td>${user.role === 'admin' ? `<select data-id="${a.id}" class="form-select form-select-sm status-sel"><option ${a.alert_status==='New'?'selected':''}>New</option><option ${a.alert_status==='Investigating'?'selected':''}>Investigating</option><option ${a.alert_status==='Resolved'?'selected':''}>Resolved</option></select>` : ''}</td>
+    </tr>`).join('') + '</tbody>';
+  document.querySelectorAll('.status-sel').forEach(sel => {
+    sel.onchange = async () => {
+      await SOC.api('/api/security/alerts/' + sel.dataset.id + '/status', { method: 'POST', body: JSON.stringify({ alert_status: sel.value }) });
+    };
+  });
+}
+load();
+</script>
+{% endblock %}

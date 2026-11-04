@@ -1,0 +1,26 @@
+{% extends "base_app.html" %}
+{% block crumb %}My account{% endblock %}
+{% block heading %}Personal dashboard{% endblock %}
+{% block content %}
+<div id="kpis" class="row g-3"></div>
+<div class="glass p-3 mt-3">
+  <h5>Account activity</h5>
+  <div class="table-responsive"><table class="table table-sm" id="history"></table></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(async function () {
+  const res = await SOC.api('/api/dashboard/user');
+  const data = await res.json();
+  const k = data.kpis || {};
+  document.getElementById('kpis').innerHTML = [
+    ['Successful logins', k.successful_logins],
+    ['Failed logins', k.failed_logins],
+    ['Related alerts', k.alerts]
+  ].map(([l,v]) => `<div class="col-md-4"><div class="glass kpi"><div class="muted small">${l}</div><div class="value">${v ?? 0}</div></div></div>`).join('');
+  document.getElementById('history').innerHTML = '<thead><tr><th>Time</th><th>IP</th><th>Status</th><th>Score</th></tr></thead><tbody>' +
+    (data.login_history || []).map(e => `<tr><td>${e.timestamp}</td><td>${e.ip_address}</td><td>${e.login_status}</td><td>${e.risk_score ?? '-'}</td></tr>`).join('') + '</tbody>';
+})();
+</script>
+{% endblock %}

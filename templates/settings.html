@@ -1,0 +1,31 @@
+{% extends "base_app.html" %}
+{% block crumb %}Account{% endblock %}
+{% block heading %}Settings{% endblock %}
+{% block content %}
+<div class="glass p-4" style="max-width:520px">
+  <form id="prof">
+    <label class="form-label">Display name</label>
+    <input class="form-control mb-3" name="name" id="name">
+    <label class="form-label">New password (optional)</label>
+    <input class="form-control mb-3" type="password" name="password">
+    <div id="msg" class="small mb-2"></div>
+    <button class="btn btn-cyan" type="submit">Save profile</button>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const u = SOC.user();
+if (u) document.getElementById('name').value = u.name;
+document.getElementById('prof').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const body = { name: fd.get('name') };
+  if (fd.get('password')) body.password = fd.get('password');
+  const res = await SOC.api('/api/auth/profile', { method: 'PUT', body: JSON.stringify(body) });
+  const data = await res.json();
+  document.getElementById('msg').textContent = res.ok ? 'Saved' : (data.error || 'Failed');
+  if (data.user) SOC.setSession({ user: data.user, access_token: SOC.token() });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base_app.html" %}
+{% block crumb %}Identity{% endblock %}
+{% block heading %}Login history{% endblock %}
+{% block content %}
+<div class="glass p-3"><table class="table" id="grid"></table></div>
+{% endblock %}
+{% block scripts %}
+<script>
+(async function () {
+  const res = await SOC.api('/api/security/logs?per_page=50');
+  const data = await res.json();
+  document.getElementById('grid').innerHTML = '<thead><tr><th>Time</th><th>Email</th><th>IP</th><th>Status</th><th>Agent</th></tr></thead><tbody>' +
+    (data.items || []).map(e => `<tr><td>${e.timestamp}</td><td>${e.email || ''}</td><td>${e.ip_address}</td><td>${e.login_status}</td><td class="small">${e.user_agent || ''}</td></tr>`).join('') + '</tbody>';
+})();
+</script>
+{% endblock %}

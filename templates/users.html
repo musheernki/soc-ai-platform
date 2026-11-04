@@ -1,0 +1,27 @@
+{% extends "base_app.html" %}
+{% block crumb %}Directory{% endblock %}
+{% block heading %}User management{% endblock %}
+{% block content %}
+<div class="glass p-3 mb-3"><input class="form-control" id="q" placeholder="Search name or email"></div>
+<div class="glass p-3"><table class="table" id="grid"></table></div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function load() {
+  const res = await SOC.api('/api/admin/users?q=' + encodeURIComponent(document.getElementById('q').value));
+  if (!res.ok) { location.href = '/app/user'; return; }
+  const data = await res.json();
+  document.getElementById('grid').innerHTML = '<thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Action</th></tr></thead><tbody>' +
+    (data.users || []).map(u => `<tr><td>${u.name}</td><td>${u.email}</td><td>${u.role}</td><td>${u.account_status}</td>
+    <td><button class="btn btn-sm btn-ghost" data-id="${u.id}" data-st="${u.account_status === 'deactivated' ? 'active' : 'deactivated'}">${u.account_status === 'deactivated' ? 'Activate' : 'Deactivate'}</button></td></tr>`).join('') + '</tbody>';
+  document.querySelectorAll('button[data-id]').forEach(btn => {
+    btn.onclick = async () => {
+      await SOC.api('/api/admin/users/' + btn.dataset.id + '/status', { method: 'POST', body: JSON.stringify({ account_status: btn.dataset.st }) });
+      load();
+    };
+  });
+}
+document.getElementById('q').oninput = load;
+load();
+</script>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base_app.html" %}
+{% block crumb %}Intelligence{% endblock %}
+{% block heading %}Security reports{% endblock %}
+{% block content %}
+<div class="glass p-4">
+  <p class="muted">Reports are built from this application's database, not from Azure tenant logs unless you point DATABASE_URL at that environment.</p>
+  <button class="btn btn-cyan me-2" id="load">Generate summary</button>
+  <a class="btn btn-ghost me-2" href="#" id="csv">Export CSV</a>
+  <a class="btn btn-ghost" href="#" id="pdf">Export PDF</a>
+  <pre class="mt-3" id="out"></pre>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('load').onclick = async () => {
+  const res = await SOC.api('/api/reports/summary');
+  document.getElementById('out').textContent = JSON.stringify(await res.json(), null, 2);
+};
+async function download(path, filename) {
+  const res = await SOC.api(path);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+document.getElementById('csv').onclick = (e) => { e.preventDefault(); download('/api/reports/export.csv', 'soc-security-report.csv'); };
+document.getElementById('pdf').onclick = (e) => { e.preventDefault(); download('/api/reports/export.pdf', 'soc-security-report.pdf'); };
+</script>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base_app.html" %}
+{% block crumb %}Telemetry{% endblock %}
+{% block heading %}Security monitoring{% endblock %}
+{% block content %}
+<div class="glass p-3 mb-3 d-flex flex-wrap gap-2">
+  <input class="form-control" style="max-width:220px" id="q" placeholder="Search IP, email, reason">
+  <select class="form-select" style="max-width:160px" id="status"><option value="">All statuses</option><option>success</option><option>failed</option></select>
+  <select class="form-select" style="max-width:160px" id="severity"><option value="">All severities</option><option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select>
+  <button class="btn btn-cyan" id="go">Filter</button>
+</div>
+<div class="glass p-3">
+  <div class="table-responsive"><table class="table table-sm" id="grid"></table></div>
+  <div class="d-flex justify-content-between mt-2">
+    <button class="btn btn-ghost btn-sm" id="prev">Previous</button>
+    <span class="muted" id="meta"></span>
+    <button class="btn btn-ghost btn-sm" id="next">Next</button>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+let page = 1;
+async function load() {
+  const params = new URLSearchParams({ page, q: document.getElementById('q').value, status: document.getElementById('status').value, severity: document.getElementById('severity').value });
+  const res = await SOC.api('/api/security/logs?' + params.toString());
+  const data = await res.json();
+  document.getElementById('grid').innerHTML = '<thead><tr><th>Time</th><th>Email</th><th>IP</th><th>Status</th><th>Prediction</th><th>Score</th><th>Severity</th><th>Reason</th></tr></thead><tbody>' +
+    (data.items || []).map(e => `<tr><td>${e.timestamp}</td><td>${e.email || ''}</td><td>${e.ip_address}</td><td>${e.login_status}</td><td>${e.anomaly_prediction || ''}</td><td>${e.risk_score ?? ''}</td><td><span class="badge badge-${e.severity || 'LOW'}">${e.severity || ''}</span></td><td class="small">${e.detection_reason || ''}</td></tr>`).join('') + '</tbody>';
+  document.getElementById('meta').textContent = `Page ${data.page} · ${data.total} events`;
+}
+document.getElementById('go').onclick = () => { page = 1; load(); };
+document.getElementById('prev').onclick = () => { page = Math.max(1, page - 1); load(); };
+document.getElementById('next').onclick = () => { page += 1; load(); };
+load();
+</script>
+{% endblock %}
