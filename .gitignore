@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .env
 .venv/
 venv/
@@ -17,3 +18,24 @@ ai_engine/models/*.pkl
 dist/
 build/
 .DS_Store
+=======
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+instance/
+*.db
+.pytest_cache/
+.coverage
+htmlcov/
+ai_engine/models/*.joblib
+ai_engine/models/*.pkl
+.idea/
+.vscode/
+*.log
+dist/
+build/
+.DS_Store
+>>>>>>> 5aeceaef23432e326a4511ac1320d8e8a6060045
